@@ -17,7 +17,7 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 1.Load and/or install needed packages
 
-```{r echo = TRUE, message = FALSE, warning=FALSE}
+```{r echo = TRUE, message=FALSE, warning=FALSE}
 
 
 InstallLoadPackages <- function(needed_pkg){
@@ -95,7 +95,7 @@ ggplot(StepsPerDay, aes(x=steps)) +
 
 3. Calculate mean and median
 
-```{r echo=TRUE}
+```{r echo=TRUE, message=FALSE}
 
 df <- data.frame("Mean" = mean(StepsPerDay$steps), "Median" = median(StepsPerDay$steps))
 gt(df)
@@ -132,7 +132,7 @@ plot(as.integer(levels(StepsEachFiveMinutes$interval)), StepsEachFiveMinutes$mea
 3. Find and format Max Steps Number and Interval
 
 
-```{r echo=TRUE}
+```{r echo=TRUE, message=FALSE}
 df <- data.frame("Max Steps" = max(StepsEachFiveMinutes$mean), 
                  "Interval" = subset(StepsEachFiveMinutes, mean ==     max(StepsEachFiveMinutes$mean))$interval)
 gt(df)
@@ -144,7 +144,7 @@ gt(df)
 
 1. Total rows with missing values
 
-```{r echo=TRUE}
+```{r echo=TRUE, message=FALSE}
 
 df <- data.frame("Missing Steps" = sum(is.na(as.character(Activities$steps))),
                  "Missing Dates" = sum(is.na(as.character(Activities$date))),
@@ -201,7 +201,7 @@ ggplot(StepsPerDayImputedSteps, aes(x=steps)) +
 
 5. Comparing old and new mean and median, where the most obvious change was a reduction in steps median
 
-```{r echo=TRUE}
+```{r echo=TRUE, message=FALSE}
 
 df <- data.frame("Previous Total Steps" = sum(StepsPerDay$steps), "New Total Steps" = sum(StepsPerDayImputedSteps$steps),"Previous Mean" = mean(StepsPerDay$steps), "New Mean" = mean(StepsPerDayImputedSteps$steps), "Previous Median" = median(StepsPerDay$steps),"New Median" = median(StepsPerDayImputedSteps$steps))
 
