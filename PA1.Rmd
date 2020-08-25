@@ -1,0 +1,286 @@
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+    html_document:
+      keep_md: true
+      toc: true
+      theme: united
+---
+
+## Introduction
+
+It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the “quantified self” movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
+
+This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
+
+## Loading and preprocessing the data
+
+1.Load and/or install needed packages
+
+```{r echo = TRUE, message = FALSE, warning=FALSE}
+
+
+InstallLoadPackages <- function(needed_pkg){
+  
+  new_pkg <- needed_pkg[!(needed_pkg %in% installed.packages()[, "Package"])]
+  
+  if (length(new_pkg)) 
+    install.packages(new_pkg, dependencies = TRUE)
+  
+  sapply(needed_pkg, require, character.only = TRUE)
+}
+
+needed_pkg <- c("dplyr","ggplot2","gt","mice")
+
+InstallLoadPackages(needed_pkg)
+
+```
+
+2. Read activities data
+
+```{r echo = TRUE}
+
+Activities <- read.csv("activity.csv", header = TRUE, na.strings = "NA", sep = ",")
+
+```
+
+3. Check data through some preprocessing commands
+
+```{r echo = TRUE}
+
+dim(Activities)
+head(Activities)
+glimpse(Activities)
+summary(Activities)
+
+```
+
+4. Assign date format to date field and assign factor format to interval 
+
+```{r echo = TRUE}
+
+Activities$date <- as.Date(Activities$date, format = "%Y-%m-%d")
+str(Activities)
+
+```
+
+## What is mean total number of steps taken per day?
+
+1. Aggregate steps by day
+
+```{r echo = TRUE}
+
+
+StepsPerDay <- aggregate(steps ~ date, data = Activities, sum, na.rm = TRUE)
+head(StepsPerDay)
+tail(StepsPerDay)
+
+```
+
+
+2. Plot of total steps by day, mean and median line.
+
+```{r echo=TRUE}
+
+ggplot(StepsPerDay, aes(x=steps)) +
+  geom_histogram(binwidth = 1000, color='darkblue', fill='lightblue') +
+  geom_vline(aes(xintercept=mean(steps)),
+            color="red", linetype="dashed", size=1) + 
+  geom_vline(aes(xintercept=median(steps)),
+             color="blue", linetype="dashed", size=1) + 
+  labs(title = "Total of Steps Taken Per Day and Median Line", x = "Steps", y = "Frequency")  + theme_classic()+ 
+  theme(plot.title = element_text(hjust = 0.5))
+ 
+```
+
+3. Calculate mean and median
+
+```{r echo=TRUE}
+
+df <- data.frame("Mean" = mean(StepsPerDay$steps), "Median" = median(StepsPerDay$steps))
+gt(df)
+
+```
+
+## What is the average daily activity pattern?
+
+1 - Calculate the average daily activity pattern
+
+```{r echo=TRUE}
+
+StepsEachFiveMinutes <-  Activities %>% 
+                                    group_by(interval) %>% 
+                                    summarize(mean = mean(steps, na.rm = TRUE))
+StepsEachFiveMinutes$interval <- as.factor(StepsEachFiveMinutes$interval)
+str(StepsEachFiveMinutes)
+
+```
+
+2. Time series plot of the 5-minute interval and the average number of steps taken 
+
+```{r echo=TRUE}
+
+
+plot(as.integer(levels(StepsEachFiveMinutes$interval)), StepsEachFiveMinutes$mean,
+     type="l", lty = 2, lwd = 1.5,
+     xlab = "Interval", ylab = "Average Number of Steps", main = "Average Daily Steps",      col ="green")
+
+
+```
+
+
+3. Find and format Max Steps Number and Interval
+
+
+```{r echo=TRUE}
+df <- data.frame("Max Steps" = max(StepsEachFiveMinutes$mean), 
+                 "Interval" = subset(StepsEachFiveMinutes, mean ==     max(StepsEachFiveMinutes$mean))$interval)
+gt(df)
+
+```
+
+## Imputing missing values
+
+
+1. Total rows with missing values
+
+```{r echo=TRUE}
+
+df <- data.frame("Missing Steps" = sum(is.na(as.character(Activities$steps))),
+                 "Missing Dates" = sum(is.na(as.character(Activities$date))),
+                 "Missing Intervals" = sum(is.na(as.character(Activities$interval))))
+gt(df)
+
+```
+
+
+2. Create a new dataset with the missing data filled in using Predictive Mean Matching (PMM), which is a widely used statistical imputation method for missing values. It aims to reduce the bias introduced in a dataset through imputation, by drawing real values sampled from the data, by building a small subset of observations where the outcome variable matches the outcome of the observations with missing values.
+
+
+```{r echo=TRUE}
+
+ActivitiesPMM <- mice(Activities,method='pmm',seed=38945,print=FALSE)
+ActivitiesStepsImputed <- complete(ActivitiesPMM,2)
+anyNA(ActivitiesStepsImputed)
+glimpse(ActivitiesStepsImputed)
+
+```
+
+3. Calculate total steps on the new dataset with imputed values. 
+
+
+```{r echo=TRUE}
+
+StepsPerDayImputedSteps <- aggregate(steps ~ date, data = ActivitiesStepsImputed, sum)
+head(StepsPerDayImputedSteps)
+tail(StepsPerDayImputedSteps)
+
+```
+
+
+4. Histogram of the new dataset
+
+
+```{r echo=TRUE}
+
+
+ggplot(StepsPerDayImputedSteps, aes(x=steps)) +
+  geom_histogram(binwidth = 1000, color='darkgreen', fill='lightgreen',alpha=0.8) +
+  geom_vline(aes(xintercept=mean(steps)),
+            color="red", linetype="dashed", size=1) + 
+  geom_vline(aes(xintercept=median(steps)),
+             color="blue", linetype="dashed", size=1) + 
+  labs(title = "Total of Steps Taken Per Day and Median Line w/Imputed Missing Steps", x = "Steps", y = "Frequency")  + 
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ 
+```
+
+
+
+5. Comparing old and new mean and median, where the most obvious change was a reduction in steps median
+
+```{r echo=TRUE}
+
+df <- data.frame("Previous Total Steps" = sum(StepsPerDay$steps), "New Total Steps" = sum(StepsPerDayImputedSteps$steps),"Previous Mean" = mean(StepsPerDay$steps), "New Mean" = mean(StepsPerDayImputedSteps$steps), "Previous Median" = median(StepsPerDay$steps),"New Median" = median(StepsPerDayImputedSteps$steps))
+
+gt(df)
+
+```
+
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+1. Creation of a factor named weekday
+
+```{r echo=TRUE}
+
+ActivitiesStepsImputed$date<-as.Date(ActivitiesStepsImputed$date)
+
+ActivitiesStepsImputed$day<-weekdays(ActivitiesStepsImputed$date)
+
+# Note: days are in Portuguese
+
+ActivitiesWeekends <- ActivitiesStepsImputed[(ActivitiesStepsImputed$day %in%     
+                                             c("sábado","domingo")),]
+
+ActivitiesWeekdays <- ActivitiesStepsImputed[(!ActivitiesStepsImputed$day %in%     
+                                             c("sábado","domingo")),]
+
+
+
+```
+
+2. Aggregated avegare steps for weekdays
+
+
+```{r echo=TRUE}
+
+WeekdaysStepsEachFiveMinutes <-  ActivitiesWeekdays %>% 
+                                    group_by(interval) %>% 
+                                    summarize(mean = mean(steps, na.rm = TRUE))
+
+WeekdaysStepsEachFiveMinutes$interval <- as.factor(WeekdaysStepsEachFiveMinutes$interval)
+
+str(WeekdaysStepsEachFiveMinutes)
+
+
+```
+
+
+
+3. Aggregated avegare steps for weekends
+
+
+```{r echo=TRUE}
+
+WeekendStepsEachFiveMinutes <-  ActivitiesWeekends %>% 
+                                    group_by(interval) %>% 
+                                    summarize(mean = mean(steps, na.rm = TRUE))
+
+WeekendStepsEachFiveMinutes$interval <- as.factor(WeekendStepsEachFiveMinutes$interval)
+
+str(WeekendStepsEachFiveMinutes)
+
+```
+
+
+4. Panel plot of Weekdays and Weekends steps
+
+
+```{r echo=TRUE}
+
+par(mfrow=c(2,1))
+
+plot(as.integer(levels(WeekdaysStepsEachFiveMinutes$interval)), WeekdaysStepsEachFiveMinutes$mean,
+     type="l", lwd = 1.5, lty=5, col=rgb(0.2,0.4,0.1,0.9),
+     xlab = "Interval", ylab = "# of Steps", main = "Average Weekdays Steps")
+     
+
+plot(as.integer(levels(WeekendStepsEachFiveMinutes$interval)), WeekendStepsEachFiveMinutes$mean,
+     type="l", lty = 5, lwd = 1.5, col=rgb(0.5,0.5,0.1,0.9),
+     xlab = "Interval", ylab = "# of Steps", main = "Average Weekends Steps")
+
+
+```
