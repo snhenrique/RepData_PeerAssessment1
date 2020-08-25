@@ -1,24 +1,39 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-    html_document:
-      keep_md: true
-      toc: true
-      theme: united
----
+-   [Introduction](#introduction)
+-   [Loading and preprocessing the
+    data](#loading-and-preprocessing-the-data)
+-   [What is mean total number of steps taken per
+    day?](#what-is-mean-total-number-of-steps-taken-per-day)
+-   [What is the average daily activity
+    pattern?](#what-is-the-average-daily-activity-pattern)
+-   [Imputing missing values](#imputing-missing-values)
+-   [Are there differences in activity patterns between weekdays and
+    weekends?](#are-there-differences-in-activity-patterns-between-weekdays-and-weekends)
 
-## Introduction
+Introduction
+------------
 
-It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the “quantified self” movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
+It is now possible to collect a large amount of data about personal
+movement using activity monitoring devices such as a Fitbit, Nike
+Fuelband, or Jawbone Up. These type of devices are part of the
+“quantified self” movement – a group of enthusiasts who take
+measurements about themselves regularly to improve their health, to find
+patterns in their behavior, or because they are tech geeks. But these
+data remain under-utilized both because the raw data are hard to obtain
+and there is a lack of statistical methods and software for processing
+and interpreting the data.
 
-This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
+This assignment makes use of data from a personal activity monitoring
+device. This device collects data at 5 minute intervals through out the
+day. The data consists of two months of data from an anonymous
+individual collected during the months of October and November, 2012 and
+include the number of steps taken in 5 minute intervals each day.
 
-## Loading and preprocessing the data
+Loading and preprocessing the data
+----------------------------------
 
 1.Load and/or install needed packages
 
-
-```r
+``` r
 InstallLoadPackages <- function(needed_pkg){
   
   new_pkg <- needed_pkg[!(needed_pkg %in% installed.packages()[, "Package"])]
@@ -34,124 +49,104 @@ needed_pkg <- c("dplyr","ggplot2","gt","mice")
 InstallLoadPackages(needed_pkg)
 ```
 
-```
-##   dplyr ggplot2      gt    mice 
-##    TRUE    TRUE    TRUE    TRUE
-```
+    ##   dplyr ggplot2      gt    mice 
+    ##    TRUE    TRUE    TRUE    TRUE
 
-2. Read activities data
+1.  Read activities data
 
-
-```r
+``` r
 Activities <- read.csv("activity.csv", header = TRUE, na.strings = "NA", sep = ",")
 ```
 
-3. Check data through some preprocessing commands
+1.  Check data through some preprocessing commands
 
-
-```r
+``` r
 dim(Activities)
 ```
 
-```
-## [1] 17568     3
-```
+    ## [1] 17568     3
 
-```r
+``` r
 head(Activities)
 ```
 
-```
-##   steps       date interval
-## 1    NA 2012-10-01        0
-## 2    NA 2012-10-01        5
-## 3    NA 2012-10-01       10
-## 4    NA 2012-10-01       15
-## 5    NA 2012-10-01       20
-## 6    NA 2012-10-01       25
-```
+    ##   steps       date interval
+    ## 1    NA 2012-10-01        0
+    ## 2    NA 2012-10-01        5
+    ## 3    NA 2012-10-01       10
+    ## 4    NA 2012-10-01       15
+    ## 5    NA 2012-10-01       20
+    ## 6    NA 2012-10-01       25
 
-```r
+``` r
 glimpse(Activities)
 ```
 
-```
-## Rows: 17,568
-## Columns: 3
-## $ steps    <int> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA...
-## $ date     <chr> "2012-10-01", "2012-10-01", "2012-10-01", "2012-10-01", "2...
-## $ interval <int> 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 100, 105, 11...
-```
+    ## Rows: 17,568
+    ## Columns: 3
+    ## $ steps    <int> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA...
+    ## $ date     <chr> "2012-10-01", "2012-10-01", "2012-10-01", "2012-10-01", "2...
+    ## $ interval <int> 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 100, 105, 11...
 
-```r
+``` r
 summary(Activities)
 ```
 
-```
-##      steps            date              interval     
-##  Min.   :  0.00   Length:17568       Min.   :   0.0  
-##  1st Qu.:  0.00   Class :character   1st Qu.: 588.8  
-##  Median :  0.00   Mode  :character   Median :1177.5  
-##  Mean   : 37.38                      Mean   :1177.5  
-##  3rd Qu.: 12.00                      3rd Qu.:1766.2  
-##  Max.   :806.00                      Max.   :2355.0  
-##  NA's   :2304
-```
+    ##      steps            date              interval     
+    ##  Min.   :  0.00   Length:17568       Min.   :   0.0  
+    ##  1st Qu.:  0.00   Class :character   1st Qu.: 588.8  
+    ##  Median :  0.00   Mode  :character   Median :1177.5  
+    ##  Mean   : 37.38                      Mean   :1177.5  
+    ##  3rd Qu.: 12.00                      3rd Qu.:1766.2  
+    ##  Max.   :806.00                      Max.   :2355.0  
+    ##  NA's   :2304
 
-4. Assign date format to date field and assign factor format to interval 
+1.  Assign date format to date field and assign factor format to
+    interval
 
-
-```r
+``` r
 Activities$date <- as.Date(Activities$date, format = "%Y-%m-%d")
 str(Activities)
 ```
 
-```
-## 'data.frame':	17568 obs. of  3 variables:
-##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
-##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
-##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
-```
+    ## 'data.frame':    17568 obs. of  3 variables:
+    ##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+    ##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
+    ##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 
-## What is mean total number of steps taken per day?
+What is mean total number of steps taken per day?
+-------------------------------------------------
 
-1. Aggregate steps by day
+1.  Aggregate steps by day
 
-
-```r
+``` r
 StepsPerDay <- aggregate(steps ~ date, data = Activities, sum, na.rm = TRUE)
 head(StepsPerDay)
 ```
 
-```
-##         date steps
-## 1 2012-10-02   126
-## 2 2012-10-03 11352
-## 3 2012-10-04 12116
-## 4 2012-10-05 13294
-## 5 2012-10-06 15420
-## 6 2012-10-07 11015
-```
+    ##         date steps
+    ## 1 2012-10-02   126
+    ## 2 2012-10-03 11352
+    ## 3 2012-10-04 12116
+    ## 4 2012-10-05 13294
+    ## 5 2012-10-06 15420
+    ## 6 2012-10-07 11015
 
-```r
+``` r
 tail(StepsPerDay)
 ```
 
-```
-##          date steps
-## 48 2012-11-24 14478
-## 49 2012-11-25 11834
-## 50 2012-11-26 11162
-## 51 2012-11-27 13646
-## 52 2012-11-28 10183
-## 53 2012-11-29  7047
-```
+    ##          date steps
+    ## 48 2012-11-24 14478
+    ## 49 2012-11-25 11834
+    ## 50 2012-11-26 11162
+    ## 51 2012-11-27 13646
+    ## 52 2012-11-28 10183
+    ## 53 2012-11-29  7047
 
+1.  Plot of total steps by day, mean and median line.
 
-2. Plot of total steps by day, mean and median line.
-
-
-```r
+``` r
 ggplot(StepsPerDay, aes(x=steps)) +
   geom_histogram(binwidth = 1000, color='darkblue', fill='lightblue') +
   geom_vline(aes(xintercept=mean(steps)),
@@ -162,21 +157,21 @@ ggplot(StepsPerDay, aes(x=steps)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-![](PA1_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](PA1_files/figure-markdown_github/unnamed-chunk-6-1.png)
 
-3. Calculate mean and median
+1.  Calculate mean and median
 
-
-```r
+``` r
 df <- data.frame("Mean" = mean(StepsPerDay$steps), "Median" = median(StepsPerDay$steps))
 gt(df)
 ```
 
-<!--html_preserve--><style>html {
+<!--html_preserve-->
+<style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#fhmzmzqfox .gt_table {
+#aitdwczdpv .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -201,7 +196,7 @@ gt(df)
   border-left-color: #D3D3D3;
 }
 
-#fhmzmzqfox .gt_heading {
+#aitdwczdpv .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -213,7 +208,7 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#fhmzmzqfox .gt_title {
+#aitdwczdpv .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -223,7 +218,7 @@ gt(df)
   border-bottom-width: 0;
 }
 
-#fhmzmzqfox .gt_subtitle {
+#aitdwczdpv .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -233,13 +228,13 @@ gt(df)
   border-top-width: 0;
 }
 
-#fhmzmzqfox .gt_bottom_border {
+#aitdwczdpv .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#fhmzmzqfox .gt_col_headings {
+#aitdwczdpv .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -254,7 +249,7 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#fhmzmzqfox .gt_col_heading {
+#aitdwczdpv .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -274,7 +269,7 @@ gt(df)
   overflow-x: hidden;
 }
 
-#fhmzmzqfox .gt_column_spanner_outer {
+#aitdwczdpv .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -286,15 +281,15 @@ gt(df)
   padding-right: 4px;
 }
 
-#fhmzmzqfox .gt_column_spanner_outer:first-child {
+#aitdwczdpv .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#fhmzmzqfox .gt_column_spanner_outer:last-child {
+#aitdwczdpv .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#fhmzmzqfox .gt_column_spanner {
+#aitdwczdpv .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -306,7 +301,7 @@ gt(df)
   width: 100%;
 }
 
-#fhmzmzqfox .gt_group_heading {
+#aitdwczdpv .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -328,7 +323,7 @@ gt(df)
   vertical-align: middle;
 }
 
-#fhmzmzqfox .gt_empty_group_heading {
+#aitdwczdpv .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -343,15 +338,15 @@ gt(df)
   vertical-align: middle;
 }
 
-#fhmzmzqfox .gt_from_md > :first-child {
+#aitdwczdpv .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#fhmzmzqfox .gt_from_md > :last-child {
+#aitdwczdpv .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#fhmzmzqfox .gt_row {
+#aitdwczdpv .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -370,7 +365,7 @@ gt(df)
   overflow-x: hidden;
 }
 
-#fhmzmzqfox .gt_stub {
+#aitdwczdpv .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -382,7 +377,7 @@ gt(df)
   padding-left: 12px;
 }
 
-#fhmzmzqfox .gt_summary_row {
+#aitdwczdpv .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -392,7 +387,7 @@ gt(df)
   padding-right: 5px;
 }
 
-#fhmzmzqfox .gt_first_summary_row {
+#aitdwczdpv .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -402,7 +397,7 @@ gt(df)
   border-top-color: #D3D3D3;
 }
 
-#fhmzmzqfox .gt_grand_summary_row {
+#aitdwczdpv .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -412,7 +407,7 @@ gt(df)
   padding-right: 5px;
 }
 
-#fhmzmzqfox .gt_first_grand_summary_row {
+#aitdwczdpv .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -422,11 +417,11 @@ gt(df)
   border-top-color: #D3D3D3;
 }
 
-#fhmzmzqfox .gt_striped {
+#aitdwczdpv .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#fhmzmzqfox .gt_table_body {
+#aitdwczdpv .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -435,7 +430,7 @@ gt(df)
   border-bottom-color: #D3D3D3;
 }
 
-#fhmzmzqfox .gt_footnotes {
+#aitdwczdpv .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -449,13 +444,13 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#fhmzmzqfox .gt_footnote {
+#aitdwczdpv .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#fhmzmzqfox .gt_sourcenotes {
+#aitdwczdpv .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -469,116 +464,118 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#fhmzmzqfox .gt_sourcenote {
+#aitdwczdpv .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#fhmzmzqfox .gt_left {
+#aitdwczdpv .gt_left {
   text-align: left;
 }
 
-#fhmzmzqfox .gt_center {
+#aitdwczdpv .gt_center {
   text-align: center;
 }
 
-#fhmzmzqfox .gt_right {
+#aitdwczdpv .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#fhmzmzqfox .gt_font_normal {
+#aitdwczdpv .gt_font_normal {
   font-weight: normal;
 }
 
-#fhmzmzqfox .gt_font_bold {
+#aitdwczdpv .gt_font_bold {
   font-weight: bold;
 }
 
-#fhmzmzqfox .gt_font_italic {
+#aitdwczdpv .gt_font_italic {
   font-style: italic;
 }
 
-#fhmzmzqfox .gt_super {
+#aitdwczdpv .gt_super {
   font-size: 65%;
 }
 
-#fhmzmzqfox .gt_footnote_marks {
+#aitdwczdpv .gt_footnote_marks {
   font-style: italic;
   font-size: 65%;
 }
 </style>
-<div id="fhmzmzqfox" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
-  
-  <thead class="gt_col_headings">
-    <tr>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Mean</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Median</th>
-    </tr>
-  </thead>
-  <tbody class="gt_table_body">
-    <tr>
-      <td class="gt_row gt_right">10766.19</td>
-      <td class="gt_row gt_center">10765</td>
-    </tr>
-  </tbody>
-  
-  
-</table></div><!--/html_preserve-->
+<div id="aitdwczdpv" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<table class="gt_table">
+<thead class="gt_col_headings">
+<tr>
+<th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">
+Mean
+</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">
+Median
+</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr>
+<td class="gt_row gt_right">
+10766.19
+</td>
+<td class="gt_row gt_center">
+10765
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--/html_preserve-->
 
-## What is the average daily activity pattern?
+What is the average daily activity pattern?
+-------------------------------------------
 
 1 - Calculate the average daily activity pattern
 
-
-```r
+``` r
 StepsEachFiveMinutes <-  Activities %>% 
                                     group_by(interval) %>% 
                                     summarize(mean = mean(steps, na.rm = TRUE))
 ```
 
-```
-## `summarise()` ungrouping output (override with `.groups` argument)
-```
+    ## `summarise()` ungrouping output (override with `.groups` argument)
 
-```r
+``` r
 StepsEachFiveMinutes$interval <- as.factor(StepsEachFiveMinutes$interval)
 str(StepsEachFiveMinutes)
 ```
 
-```
-## tibble [288 x 2] (S3: tbl_df/tbl/data.frame)
-##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
-##  $ mean    : num [1:288] 1.717 0.3396 0.1321 0.1509 0.0755 ...
-```
+    ## tibble [288 x 2] (S3: tbl_df/tbl/data.frame)
+    ##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
+    ##  $ mean    : num [1:288] 1.717 0.3396 0.1321 0.1509 0.0755 ...
 
-2. Time series plot of the 5-minute interval and the average number of steps taken 
+1.  Time series plot of the 5-minute interval and the average number of
+    steps taken
 
-
-```r
+``` r
 plot(as.integer(levels(StepsEachFiveMinutes$interval)), StepsEachFiveMinutes$mean,
      type="l", lty = 2, lwd = 1.5,
      xlab = "Interval", ylab = "Average Number of Steps", main = "Average Daily Steps",      col ="green")
 ```
 
-![](PA1_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](PA1_files/figure-markdown_github/unnamed-chunk-9-1.png)
 
+1.  Find and format Max Steps Number and Interval
 
-3. Find and format Max Steps Number and Interval
-
-
-
-```r
+``` r
 df <- data.frame("Max Steps" = max(StepsEachFiveMinutes$mean), 
                  "Interval" = subset(StepsEachFiveMinutes, mean ==     max(StepsEachFiveMinutes$mean))$interval)
 gt(df)
 ```
 
-<!--html_preserve--><style>html {
+<!--html_preserve-->
+<style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#vurezwfjop .gt_table {
+#mgyyxxvkgk .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -603,7 +600,7 @@ gt(df)
   border-left-color: #D3D3D3;
 }
 
-#vurezwfjop .gt_heading {
+#mgyyxxvkgk .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -615,7 +612,7 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#vurezwfjop .gt_title {
+#mgyyxxvkgk .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -625,7 +622,7 @@ gt(df)
   border-bottom-width: 0;
 }
 
-#vurezwfjop .gt_subtitle {
+#mgyyxxvkgk .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -635,13 +632,13 @@ gt(df)
   border-top-width: 0;
 }
 
-#vurezwfjop .gt_bottom_border {
+#mgyyxxvkgk .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#vurezwfjop .gt_col_headings {
+#mgyyxxvkgk .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -656,7 +653,7 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#vurezwfjop .gt_col_heading {
+#mgyyxxvkgk .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -676,7 +673,7 @@ gt(df)
   overflow-x: hidden;
 }
 
-#vurezwfjop .gt_column_spanner_outer {
+#mgyyxxvkgk .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -688,15 +685,15 @@ gt(df)
   padding-right: 4px;
 }
 
-#vurezwfjop .gt_column_spanner_outer:first-child {
+#mgyyxxvkgk .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#vurezwfjop .gt_column_spanner_outer:last-child {
+#mgyyxxvkgk .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#vurezwfjop .gt_column_spanner {
+#mgyyxxvkgk .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -708,7 +705,7 @@ gt(df)
   width: 100%;
 }
 
-#vurezwfjop .gt_group_heading {
+#mgyyxxvkgk .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -730,7 +727,7 @@ gt(df)
   vertical-align: middle;
 }
 
-#vurezwfjop .gt_empty_group_heading {
+#mgyyxxvkgk .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -745,15 +742,15 @@ gt(df)
   vertical-align: middle;
 }
 
-#vurezwfjop .gt_from_md > :first-child {
+#mgyyxxvkgk .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#vurezwfjop .gt_from_md > :last-child {
+#mgyyxxvkgk .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#vurezwfjop .gt_row {
+#mgyyxxvkgk .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -772,7 +769,7 @@ gt(df)
   overflow-x: hidden;
 }
 
-#vurezwfjop .gt_stub {
+#mgyyxxvkgk .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -784,7 +781,7 @@ gt(df)
   padding-left: 12px;
 }
 
-#vurezwfjop .gt_summary_row {
+#mgyyxxvkgk .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -794,7 +791,7 @@ gt(df)
   padding-right: 5px;
 }
 
-#vurezwfjop .gt_first_summary_row {
+#mgyyxxvkgk .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -804,7 +801,7 @@ gt(df)
   border-top-color: #D3D3D3;
 }
 
-#vurezwfjop .gt_grand_summary_row {
+#mgyyxxvkgk .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -814,7 +811,7 @@ gt(df)
   padding-right: 5px;
 }
 
-#vurezwfjop .gt_first_grand_summary_row {
+#mgyyxxvkgk .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -824,11 +821,11 @@ gt(df)
   border-top-color: #D3D3D3;
 }
 
-#vurezwfjop .gt_striped {
+#mgyyxxvkgk .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#vurezwfjop .gt_table_body {
+#mgyyxxvkgk .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -837,7 +834,7 @@ gt(df)
   border-bottom-color: #D3D3D3;
 }
 
-#vurezwfjop .gt_footnotes {
+#mgyyxxvkgk .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -851,13 +848,13 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#vurezwfjop .gt_footnote {
+#mgyyxxvkgk .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#vurezwfjop .gt_sourcenotes {
+#mgyyxxvkgk .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -871,81 +868,89 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#vurezwfjop .gt_sourcenote {
+#mgyyxxvkgk .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#vurezwfjop .gt_left {
+#mgyyxxvkgk .gt_left {
   text-align: left;
 }
 
-#vurezwfjop .gt_center {
+#mgyyxxvkgk .gt_center {
   text-align: center;
 }
 
-#vurezwfjop .gt_right {
+#mgyyxxvkgk .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#vurezwfjop .gt_font_normal {
+#mgyyxxvkgk .gt_font_normal {
   font-weight: normal;
 }
 
-#vurezwfjop .gt_font_bold {
+#mgyyxxvkgk .gt_font_bold {
   font-weight: bold;
 }
 
-#vurezwfjop .gt_font_italic {
+#mgyyxxvkgk .gt_font_italic {
   font-style: italic;
 }
 
-#vurezwfjop .gt_super {
+#mgyyxxvkgk .gt_super {
   font-size: 65%;
 }
 
-#vurezwfjop .gt_footnote_marks {
+#mgyyxxvkgk .gt_footnote_marks {
   font-style: italic;
   font-size: 65%;
 }
 </style>
-<div id="vurezwfjop" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
-  
-  <thead class="gt_col_headings">
-    <tr>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Max.Steps</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Interval</th>
-    </tr>
-  </thead>
-  <tbody class="gt_table_body">
-    <tr>
-      <td class="gt_row gt_right">206.1698</td>
-      <td class="gt_row gt_center">835</td>
-    </tr>
-  </tbody>
-  
-  
-</table></div><!--/html_preserve-->
+<div id="mgyyxxvkgk" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<table class="gt_table">
+<thead class="gt_col_headings">
+<tr>
+<th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">
+Max.Steps
+</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">
+Interval
+</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr>
+<td class="gt_row gt_right">
+206.1698
+</td>
+<td class="gt_row gt_center">
+835
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--/html_preserve-->
 
-## Imputing missing values
+Imputing missing values
+-----------------------
 
+1.  Total rows with missing values
 
-1. Total rows with missing values
-
-
-```r
+``` r
 df <- data.frame("Missing Steps" = sum(is.na(as.character(Activities$steps))),
                  "Missing Dates" = sum(is.na(as.character(Activities$date))),
                  "Missing Intervals" = sum(is.na(as.character(Activities$interval))))
 gt(df)
 ```
 
-<!--html_preserve--><style>html {
+<!--html_preserve-->
+<style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#tfksnuxtaj .gt_table {
+#ziiaawtobv .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -970,7 +975,7 @@ gt(df)
   border-left-color: #D3D3D3;
 }
 
-#tfksnuxtaj .gt_heading {
+#ziiaawtobv .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -982,7 +987,7 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#tfksnuxtaj .gt_title {
+#ziiaawtobv .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -992,7 +997,7 @@ gt(df)
   border-bottom-width: 0;
 }
 
-#tfksnuxtaj .gt_subtitle {
+#ziiaawtobv .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1002,13 +1007,13 @@ gt(df)
   border-top-width: 0;
 }
 
-#tfksnuxtaj .gt_bottom_border {
+#ziiaawtobv .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#tfksnuxtaj .gt_col_headings {
+#ziiaawtobv .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1023,7 +1028,7 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#tfksnuxtaj .gt_col_heading {
+#ziiaawtobv .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1043,7 +1048,7 @@ gt(df)
   overflow-x: hidden;
 }
 
-#tfksnuxtaj .gt_column_spanner_outer {
+#ziiaawtobv .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1055,15 +1060,15 @@ gt(df)
   padding-right: 4px;
 }
 
-#tfksnuxtaj .gt_column_spanner_outer:first-child {
+#ziiaawtobv .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#tfksnuxtaj .gt_column_spanner_outer:last-child {
+#ziiaawtobv .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#tfksnuxtaj .gt_column_spanner {
+#ziiaawtobv .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1075,7 +1080,7 @@ gt(df)
   width: 100%;
 }
 
-#tfksnuxtaj .gt_group_heading {
+#ziiaawtobv .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1097,7 +1102,7 @@ gt(df)
   vertical-align: middle;
 }
 
-#tfksnuxtaj .gt_empty_group_heading {
+#ziiaawtobv .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1112,15 +1117,15 @@ gt(df)
   vertical-align: middle;
 }
 
-#tfksnuxtaj .gt_from_md > :first-child {
+#ziiaawtobv .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#tfksnuxtaj .gt_from_md > :last-child {
+#ziiaawtobv .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#tfksnuxtaj .gt_row {
+#ziiaawtobv .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1139,7 +1144,7 @@ gt(df)
   overflow-x: hidden;
 }
 
-#tfksnuxtaj .gt_stub {
+#ziiaawtobv .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1151,7 +1156,7 @@ gt(df)
   padding-left: 12px;
 }
 
-#tfksnuxtaj .gt_summary_row {
+#ziiaawtobv .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1161,7 +1166,7 @@ gt(df)
   padding-right: 5px;
 }
 
-#tfksnuxtaj .gt_first_summary_row {
+#ziiaawtobv .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1171,7 +1176,7 @@ gt(df)
   border-top-color: #D3D3D3;
 }
 
-#tfksnuxtaj .gt_grand_summary_row {
+#ziiaawtobv .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1181,7 +1186,7 @@ gt(df)
   padding-right: 5px;
 }
 
-#tfksnuxtaj .gt_first_grand_summary_row {
+#ziiaawtobv .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1191,11 +1196,11 @@ gt(df)
   border-top-color: #D3D3D3;
 }
 
-#tfksnuxtaj .gt_striped {
+#ziiaawtobv .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#tfksnuxtaj .gt_table_body {
+#ziiaawtobv .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1204,7 +1209,7 @@ gt(df)
   border-bottom-color: #D3D3D3;
 }
 
-#tfksnuxtaj .gt_footnotes {
+#ziiaawtobv .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1218,13 +1223,13 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#tfksnuxtaj .gt_footnote {
+#ziiaawtobv .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#tfksnuxtaj .gt_sourcenotes {
+#ziiaawtobv .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1238,131 +1243,133 @@ gt(df)
   border-right-color: #D3D3D3;
 }
 
-#tfksnuxtaj .gt_sourcenote {
+#ziiaawtobv .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#tfksnuxtaj .gt_left {
+#ziiaawtobv .gt_left {
   text-align: left;
 }
 
-#tfksnuxtaj .gt_center {
+#ziiaawtobv .gt_center {
   text-align: center;
 }
 
-#tfksnuxtaj .gt_right {
+#ziiaawtobv .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#tfksnuxtaj .gt_font_normal {
+#ziiaawtobv .gt_font_normal {
   font-weight: normal;
 }
 
-#tfksnuxtaj .gt_font_bold {
+#ziiaawtobv .gt_font_bold {
   font-weight: bold;
 }
 
-#tfksnuxtaj .gt_font_italic {
+#ziiaawtobv .gt_font_italic {
   font-style: italic;
 }
 
-#tfksnuxtaj .gt_super {
+#ziiaawtobv .gt_super {
   font-size: 65%;
 }
 
-#tfksnuxtaj .gt_footnote_marks {
+#ziiaawtobv .gt_footnote_marks {
   font-style: italic;
   font-size: 65%;
 }
 </style>
-<div id="tfksnuxtaj" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
-  
-  <thead class="gt_col_headings">
-    <tr>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Missing.Steps</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Missing.Dates</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Missing.Intervals</th>
-    </tr>
-  </thead>
-  <tbody class="gt_table_body">
-    <tr>
-      <td class="gt_row gt_center">2304</td>
-      <td class="gt_row gt_center">0</td>
-      <td class="gt_row gt_center">0</td>
-    </tr>
-  </tbody>
-  
-  
-</table></div><!--/html_preserve-->
+<div id="ziiaawtobv" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<table class="gt_table">
+<thead class="gt_col_headings">
+<tr>
+<th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">
+Missing.Steps
+</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">
+Missing.Dates
+</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">
+Missing.Intervals
+</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr>
+<td class="gt_row gt_center">
+2304
+</td>
+<td class="gt_row gt_center">
+0
+</td>
+<td class="gt_row gt_center">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--/html_preserve-->
 
+1.  Create a new dataset with the missing data filled in using
+    Predictive Mean Matching (PMM), which is a widely used statistical
+    imputation method for missing values. It aims to reduce the bias
+    introduced in a dataset through imputation, by drawing real values
+    sampled from the data, by building a small subset of observations
+    where the outcome variable matches the outcome of the observations
+    with missing values.
 
-2. Create a new dataset with the missing data filled in using Predictive Mean Matching (PMM), which is a widely used statistical imputation method for missing values. It aims to reduce the bias introduced in a dataset through imputation, by drawing real values sampled from the data, by building a small subset of observations where the outcome variable matches the outcome of the observations with missing values.
-
-
-
-```r
+``` r
 ActivitiesPMM <- mice(Activities,method='pmm',seed=38945,print=FALSE)
 ActivitiesStepsImputed <- complete(ActivitiesPMM,2)
 anyNA(ActivitiesStepsImputed)
 ```
 
-```
-## [1] FALSE
-```
+    ## [1] FALSE
 
-```r
+``` r
 glimpse(ActivitiesStepsImputed)
 ```
 
-```
-## Rows: 17,568
-## Columns: 3
-## $ steps    <int> 0, 0, 47, 47, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,...
-## $ date     <date> 2012-10-01, 2012-10-01, 2012-10-01, 2012-10-01, 2012-10-0...
-## $ interval <int> 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 100, 105, 11...
-```
+    ## Rows: 17,568
+    ## Columns: 3
+    ## $ steps    <int> 0, 0, 47, 47, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,...
+    ## $ date     <date> 2012-10-01, 2012-10-01, 2012-10-01, 2012-10-01, 2012-10-0...
+    ## $ interval <int> 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 100, 105, 11...
 
-3. Calculate total steps on the new dataset with imputed values. 
+1.  Calculate total steps on the new dataset with imputed values.
 
-
-
-```r
+``` r
 StepsPerDayImputedSteps <- aggregate(steps ~ date, data = ActivitiesStepsImputed, sum)
 head(StepsPerDayImputedSteps)
 ```
 
-```
-##         date steps
-## 1 2012-10-01  8475
-## 2 2012-10-02   126
-## 3 2012-10-03 11352
-## 4 2012-10-04 12116
-## 5 2012-10-05 13294
-## 6 2012-10-06 15420
-```
+    ##         date steps
+    ## 1 2012-10-01  8475
+    ## 2 2012-10-02   126
+    ## 3 2012-10-03 11352
+    ## 4 2012-10-04 12116
+    ## 5 2012-10-05 13294
+    ## 6 2012-10-06 15420
 
-```r
+``` r
 tail(StepsPerDayImputedSteps)
 ```
 
-```
-##          date steps
-## 56 2012-11-25 11834
-## 57 2012-11-26 11162
-## 58 2012-11-27 13646
-## 59 2012-11-28 10183
-## 60 2012-11-29  7047
-## 61 2012-11-30  9716
-```
+    ##          date steps
+    ## 56 2012-11-25 11834
+    ## 57 2012-11-26 11162
+    ## 58 2012-11-27 13646
+    ## 59 2012-11-28 10183
+    ## 60 2012-11-29  7047
+    ## 61 2012-11-30  9716
 
+1.  Histogram of the new dataset
 
-4. Histogram of the new dataset
-
-
-
-```r
+``` r
 ggplot(StepsPerDayImputedSteps, aes(x=steps)) +
   geom_histogram(binwidth = 1000, color='darkgreen', fill='lightgreen',alpha=0.8) +
   geom_vline(aes(xintercept=mean(steps)),
@@ -1374,20 +1381,19 @@ ggplot(StepsPerDayImputedSteps, aes(x=steps)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-![](PA1_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](PA1_files/figure-markdown_github/unnamed-chunk-14-1.png)
 
+1.  Comparing old and new mean and median, where the most obvious change
+    was a reduction in steps median
 
-
-5. Comparing old and new mean and median, where the most obvious change was a reduction in steps median
-
-
-```r
+``` r
 df <- data.frame("Previous Total Steps" = sum(StepsPerDay$steps), "New Total Steps" = sum(StepsPerDayImputedSteps$steps),"Previous Mean" = mean(StepsPerDay$steps), "New Mean" = mean(StepsPerDayImputedSteps$steps), "Previous Median" = median(StepsPerDay$steps),"New Median" = median(StepsPerDayImputedSteps$steps))
 
 gt(df)
 ```
 
-<!--html_preserve--><style>html {
+<!--html_preserve-->
+<style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
@@ -1723,39 +1729,62 @@ gt(df)
   font-size: 65%;
 }
 </style>
-<div id="ncvhwqvwgs" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
-  
-  <thead class="gt_col_headings">
-    <tr>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Previous.Total.Steps</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">New.Total.Steps</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Previous.Mean</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">New.Mean</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Previous.Median</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">New.Median</th>
-    </tr>
-  </thead>
-  <tbody class="gt_table_body">
-    <tr>
-      <td class="gt_row gt_center">570608</td>
-      <td class="gt_row gt_center">633703</td>
-      <td class="gt_row gt_right">10766.19</td>
-      <td class="gt_row gt_right">10388.57</td>
-      <td class="gt_row gt_center">10765</td>
-      <td class="gt_row gt_center">10395</td>
-    </tr>
-  </tbody>
-  
-  
-</table></div><!--/html_preserve-->
+<div id="ncvhwqvwgs" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<table class="gt_table">
+<thead class="gt_col_headings">
+<tr>
+<th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">
+Previous.Total.Steps
+</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">
+New.Total.Steps
+</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">
+Previous.Mean
+</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">
+New.Mean
+</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">
+Previous.Median
+</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">
+New.Median
+</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr>
+<td class="gt_row gt_center">
+570608
+</td>
+<td class="gt_row gt_center">
+633703
+</td>
+<td class="gt_row gt_right">
+10766.19
+</td>
+<td class="gt_row gt_right">
+10388.57
+</td>
+<td class="gt_row gt_center">
+10765
+</td>
+<td class="gt_row gt_center">
+10395
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--/html_preserve-->
 
+Are there differences in activity patterns between weekdays and weekends?
+-------------------------------------------------------------------------
 
-## Are there differences in activity patterns between weekdays and weekends?
+1.  Creation of a factor named weekday
 
-1. Creation of a factor named weekday
-
-
-```r
+``` r
 ActivitiesStepsImputed$date<-as.Date(ActivitiesStepsImputed$date)
 
 ActivitiesStepsImputed$day<-weekdays(ActivitiesStepsImputed$date)
@@ -1769,66 +1798,49 @@ ActivitiesWeekdays <- ActivitiesStepsImputed[(!ActivitiesStepsImputed$day %in%
                                              c("sábado","domingo")),]
 ```
 
-2. Aggregated avegare steps for weekdays
+1.  Aggregated avegare steps for weekdays
 
-
-
-```r
+``` r
 WeekdaysStepsEachFiveMinutes <-  ActivitiesWeekdays %>% 
                                     group_by(interval) %>% 
                                     summarize(mean = mean(steps, na.rm = TRUE))
 ```
 
-```
-## `summarise()` ungrouping output (override with `.groups` argument)
-```
+    ## `summarise()` ungrouping output (override with `.groups` argument)
 
-```r
+``` r
 WeekdaysStepsEachFiveMinutes$interval <- as.factor(WeekdaysStepsEachFiveMinutes$interval)
 
 str(WeekdaysStepsEachFiveMinutes)
 ```
 
-```
-## tibble [288 x 2] (S3: tbl_df/tbl/data.frame)
-##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
-##  $ mean    : num [1:288] 2.2 0.4 1.2 1.222 0.244 ...
-```
+    ## tibble [288 x 2] (S3: tbl_df/tbl/data.frame)
+    ##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
+    ##  $ mean    : num [1:288] 2.2 0.4 1.2 1.222 0.244 ...
 
+1.  Aggregated avegare steps for weekends
 
-
-3. Aggregated avegare steps for weekends
-
-
-
-```r
+``` r
 WeekendStepsEachFiveMinutes <-  ActivitiesWeekends %>% 
                                     group_by(interval) %>% 
                                     summarize(mean = mean(steps, na.rm = TRUE))
 ```
 
-```
-## `summarise()` ungrouping output (override with `.groups` argument)
-```
+    ## `summarise()` ungrouping output (override with `.groups` argument)
 
-```r
+``` r
 WeekendStepsEachFiveMinutes$interval <- as.factor(WeekendStepsEachFiveMinutes$interval)
 
 str(WeekendStepsEachFiveMinutes)
 ```
 
-```
-## tibble [288 x 2] (S3: tbl_df/tbl/data.frame)
-##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
-##  $ mean    : num [1:288] 0 0 0 0 0 3.25 0 0 0 0.375 ...
-```
+    ## tibble [288 x 2] (S3: tbl_df/tbl/data.frame)
+    ##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
+    ##  $ mean    : num [1:288] 0 0 0 0 0 3.25 0 0 0 0.375 ...
 
+1.  Panel plot of Weekdays and Weekends steps
 
-4. Panel plot of Weekdays and Weekends steps
-
-
-
-```r
+``` r
 par(mfrow=c(2,1))
 
 plot(as.integer(levels(WeekdaysStepsEachFiveMinutes$interval)), WeekdaysStepsEachFiveMinutes$mean,
@@ -1841,4 +1853,4 @@ plot(as.integer(levels(WeekendStepsEachFiveMinutes$interval)), WeekendStepsEachF
      xlab = "Interval", ylab = "# of Steps", main = "Average Weekends Steps")
 ```
 
-![](PA1_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+![](PA1_files/figure-markdown_github/unnamed-chunk-19-1.png)
